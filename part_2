@@ -1,0 +1,95 @@
+import sympy as sp
+import numpy as np
+import matplotlib.pyplot as plt
+import scipy.integrate as integrate
+import scipy.integrate
+from part_1 import approx_decorator, plot_result, error
+
+#target func params
+A = 2
+w = 1
+B = 1
+
+
+n = 12 #number of given func values
+m=5 # approx polynomial power
+points=np.linspace(-np.pi, np.pi,n) #points given
+
+
+
+def target(x):
+    return A*scipy.sin(w*x)+B
+
+
+#product for fucntions defined in discrete points
+def disc_product(u,v):
+    return sum(u(i)*v(i) for i in points)
+
+
+#estimation of apporximation error
+def sigma(approx,target,k):
+    return np.sqrt((1/(n-k))*sum((approx(i)-target(i))**2 for i in points))
+
+
+def build_approx(k):
+    # defining approximation system
+    system = [(lambda i: (lambda x: x ** i))(i) for i in range(k + 1)]
+
+    # filling Gramms matrix
+    G = [[disc_product(system[i], system[j]) for j in range(k + 1)] for i in range(k + 1)]
+    G = np.array(G)
+
+    # filling right hand-side of matrix equation for coeffs
+    F = [disc_product(target, system[i]) for i in range(k + 1)]
+    F = np.array(F)
+    # print(F)
+
+    # solving matrix eq for coeffs of approx
+    C = np.linalg.solve(G, F)
+
+    return approx_decorator(C, system)
+
+
+def error_estimation(k):
+    return sigma(build_approx(k),target,k)
+
+
+
+def main_2():
+    eps=pow(10,-8)
+    print("eps: ", eps)
+    power=m
+
+    old_est=error_estimation(power)
+
+
+    while True:
+        power+=1
+        new_est=error_estimation(power)
+        print("m: ",power, "est: ", new_est)
+        #if (abs(old_est - new_est) < eps) or (new_est > old_est) or (power == n - 1):
+        if  (power == n - 1):
+            break
+        #else:
+
+         #   old_est=new_est
+
+
+
+    #print("m: ",power)
+    print("error: ",error(target,build_approx(11)))
+
+    t=np.linspace(-np.pi,np.pi,500)
+    plt.plot(t,list(map(build_approx(11),t)))
+    plt.plot(t,list(map(target,t)))
+    plt.show()
+
+
+
+main_2()
+
+
+
+
+
+
